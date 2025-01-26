@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adventure Game: Catch the Hearts</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background-color: #ffebf3;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            background-color: #ffccf2;
+            border: 2px solid #ff4d6d;
+        }
+        h1 {
+            font-size: 3em;
+            color: #ff4d6d;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        #score {
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>Let the Adventure Begin!</h1>
+        <p>Catch the falling hearts and earn points!</p>
+        <canvas id="gameCanvas" width="400" height="500"></canvas>
+        <p id="score">Score: 0</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let hearts = [];
+        let player = { x: 180, width: 40, height: 40, color: '#ff4d6d' };
+        let score = 0;
+
+        function drawPlayer() {
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, canvas.height - 50, player.width, player.height);
+        }
+
+        function drawHearts() {
+            ctx.fillStyle = 'red';
+            hearts.forEach(heart => {
+                ctx.beginPath();
+                ctx.arc(heart.x, heart.y, 15, 0, Math.PI * 2);
+                ctx.fill();
+                heart.y += heart.speed;
+
+                // Check for collisions
+                if (heart.y > canvas.height - 50 && heart.x > player.x && heart.x < player.x + player.width) {
+                    score++;
+                    hearts.splice(hearts.indexOf(heart), 1);
+                }
+            });
+        }
+
+        function updateGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPlayer();
+            drawHearts();
+            hearts = hearts.filter(heart => heart.y < canvas.height);
+            document.getElementById('score').innerText = `Score: ${score}`;
+        }
+
+        function spawnHeart() {
+            hearts.push({ x: Math.random() * canvas.width, y: 0, speed: 2 });
+        }
+
+        // Handle touch controls
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            touchEndX = e.touches[0].clientX;
+            if (touchEndX < touchStartX && player.x > 0) {
+                player.x -= 20;
+            } else if (touchEndX > touchStartX && player.x < canvas.width - player.width) {
+                player.x += 20;
+            }
+            touchStartX = touchEndX; // Update start position for the next move
+        });
+
+        setInterval(updateGame, 20);
+        setInterval(spawnHeart, 1000);
+    </script>
+</body>
+</html>
